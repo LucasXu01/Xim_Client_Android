@@ -2,13 +2,13 @@ package com.lucas.ximdemo;
 
 import android.app.Application;
 
-import com.lucas.ximdemo.xim.config.CommunicationProtocol;
-import com.lucas.ximdemo.xim.config.IMOptions;
-import com.lucas.ximdemo.xim.config.ImplementationMode;
-import com.lucas.ximdemo.xim.config.TransportProtocol;
-import com.lucas.ximdemo.xim.v1.IMManager;
-import com.lucas.ximdemo.xim.v1.IMSDKListener;
-import com.lucas.ximdemo.xim.v1.IMUserFullInfo;
+import com.lucas.xim.config.CommunicationProtocol;
+import com.lucas.xim.config.IMOptions;
+import com.lucas.xim.config.ImplementationMode;
+import com.lucas.xim.config.TransportProtocol;
+import com.lucas.xim.v1.IMManager;
+import com.lucas.xim.v1.IMSDKListener;
+import com.lucas.xim.v1.IMUserFullInfo;
 
 /**
  * @Description:
@@ -17,7 +17,7 @@ import com.lucas.ximdemo.xim.v1.IMUserFullInfo;
  * @github: https://github.com/LucasXu01
  * @Date: 2021/12/10  5:44 下午
  */
-class MyApp extends Application {
+public class MyApp extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
@@ -55,7 +55,7 @@ class MyApp extends Application {
         });
 
         IMOptions options = new IMOptions.Builder()
-                .setHost("127.0.0.1")
+                .setHost("192.168.1.7")
                 .setMAX_RETRY(5)
                 .setImplementationMode(ImplementationMode.Netty)
                 .setCommunicationProtocol(CommunicationProtocol.TCP)
