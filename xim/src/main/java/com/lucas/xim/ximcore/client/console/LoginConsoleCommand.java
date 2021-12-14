@@ -4,17 +4,16 @@ import com.lucas.xim.ximcore.protocal.request.LoginRequestPacket;
 
 import io.netty.channel.Channel;
 
+import java.util.Map;
 import java.util.Scanner;
 
-public class LoginConsoleCommand implements ConsoleCommand {
+public class LoginConsoleCommand {
 
-    @Override
-    public void exec(Scanner scanner, Channel channel) {
+    public void exec(String mobile,String pwd, Channel channel) {
         LoginRequestPacket loginRequestPacket = new LoginRequestPacket();
 
-        System.out.print("输入用户名登录: ");
-        loginRequestPacket.setUsername(scanner.nextLine());
-        loginRequestPacket.setPassword("pwd");
+        loginRequestPacket.setUsername(mobile);
+        loginRequestPacket.setPassword(pwd);
 
         // 发送登录数据包
         channel.writeAndFlush(loginRequestPacket);

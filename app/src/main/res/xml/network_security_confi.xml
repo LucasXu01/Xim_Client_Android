@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--Android 9.0 https请求适配-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+
+<!--抓包用的-->
+<!--        <domain-config>-->
+<!--            <domain includeSubdomains="true">test.getfan.cn</domain>-->
+<!--            <trust-anchors>-->
+<!--                <certificates src="user"/>-->
+<!--            </trust-anchors>-->
+<!--        </domain-config>-->
+
+
+</network-security-config>

@@ -2,6 +2,7 @@ package com.lucas.ximdemo;
 
 import android.app.Application;
 
+import com.blankj.utilcode.util.Utils;
 import com.lucas.xim.config.CommunicationProtocol;
 import com.lucas.xim.config.IMOptions;
 import com.lucas.xim.config.ImplementationMode;
@@ -21,6 +22,8 @@ public class MyApp extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        Utils.init(this);
 
         IMManager.getInstance().addIMSDKListener(new IMSDKListener() {
             @Override

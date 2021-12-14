@@ -23,6 +23,7 @@ import com.lucas.xim.v1.IMContext;
 import com.lucas.xim.common.IMLog;
 import com.lucas.xim.common.SystemUtil;
 import com.lucas.xim.ximcore.client.console.ConsoleCommandManager;
+import com.lucas.xim.ximcore.client.console.LoginConsoleCommand;
 import com.lucas.xim.ximcore.client.handler.CreateGroupResponseHandler;
 import com.lucas.xim.ximcore.client.handler.GroupMessageResponseHandler;
 import com.lucas.xim.ximcore.client.handler.HeartBeatTimerHandler;
@@ -383,19 +384,22 @@ public class BaseManager {
     }
 
     private void startConsoleThread(Channel channel) {
-        ConsoleCommandManager consoleCommandManager = new ConsoleCommandManager();
-//        LoginConsoleCommand loginConsoleCommand = new LoginConsoleCommand();
-        Scanner scanner = new Scanner(System.in);
+        XimDispatcher.getInstance().setChannel(channel);
+        Channel channel1 = XimDispatcher.getInstance().getChannel();
 
-        new Thread(() -> {
-            while (!Thread.interrupted()) {
-                if (!SessionUtil.hasLogin(channel)) {
+//        ConsoleCommandManager consoleCommandManager = new ConsoleCommandManager();
+//        LoginConsoleCommand loginConsoleCommand = new LoginConsoleCommand();
+//        Scanner scanner = new Scanner(System.in);
+//
+//        new Thread(() -> {
+//            while (!Thread.interrupted()) {
+//                if (!SessionUtil.hasLogin(channel)) {
 //                    loginConsoleCommand.exec(scanner, channel);
-                } else {
-                    consoleCommandManager.exec(scanner, channel);
-                }
-            }
-        }).start();
+//                } else {
+//                    consoleCommandManager.exec(scanner, channel);
+//                }
+//            }
+//        }).start();
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -446,7 +450,13 @@ public class BaseManager {
     protected native void nativeUninitSDK();
 
 
-    protected native void nativeLogin(String identifier, String userSig, IMCallback callBack);
+    protected  void nativeLogin(String identifier, String userSig, IMCallback callBack){
+        LoginConsoleCommand loginConsoleCommand = new LoginConsoleCommand();
+        Channel channel = XimDispatcher.getInstance().getChannel();
+        loginConsoleCommand.exec(identifier,  userSig, channel);
+
+        callBack.success(null);
+    };
 
     protected native void nativeLogout(IMCallback callBack);
 
