@@ -1,5 +1,6 @@
 package com.lucas.xim.ximcore.protocal.request;
 
+import com.lucas.xim.message.IMMsg;
 import com.lucas.xim.ximcore.protocal.Packet;
 
 import lombok.Data;
@@ -11,11 +12,10 @@ import static com.lucas.xim.ximcore.protocal.command.Command.MESSAGE_REQUEST;
 @Data
 @NoArgsConstructor
 public class MessageRequestPacket extends Packet {
-    private String toUserId;
-    private String message;
+    private IMMsg message;
 
-    public MessageRequestPacket(String toUserId, String message) {
-        this.toUserId = toUserId;
+
+    public MessageRequestPacket(IMMsg message) {
         this.message = message;
     }
 

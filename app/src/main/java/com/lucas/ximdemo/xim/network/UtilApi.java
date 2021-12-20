@@ -22,4 +22,7 @@ public interface UtilApi {
     @POST("user/register/")
     Observable<ResponseBody> register(@Body RequestBody info);
 
+    @POST("user/login/")
+    Observable<ResponseBody> login(@Body RequestBody info);
+
 }

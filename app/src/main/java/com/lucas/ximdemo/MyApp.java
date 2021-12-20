@@ -3,6 +3,7 @@ package com.lucas.ximdemo;
 import android.app.Application;
 
 import com.blankj.utilcode.util.Utils;
+import com.lucas.xim.XIMManager;
 import com.lucas.xim.config.CommunicationProtocol;
 import com.lucas.xim.config.IMOptions;
 import com.lucas.xim.config.ImplementationMode;
@@ -25,7 +26,7 @@ public class MyApp extends Application {
 
         Utils.init(this);
 
-        IMManager.getInstance().addIMSDKListener(new IMSDKListener() {
+        XIMManager.getInstance().addIMSDKListener(new IMSDKListener() {
             @Override
             public void onConnecting() {
 
@@ -43,7 +44,7 @@ public class MyApp extends Application {
 
             @Override
             public void onKickedOffline() {
-                // TODO: 2021/12/10 被踢下线
+
             }
 
             @Override
@@ -64,7 +65,7 @@ public class MyApp extends Application {
                 .setCommunicationProtocol(CommunicationProtocol.TCP)
                 .setTransportProtocol(TransportProtocol.Json)
                 .build();
-        Boolean isInitSec = IMManager.getInstance().initSDK(this, options, 123456);
+        Boolean isInitSec = XIMManager.getInstance().init(this, options, "123456");
 
     }
 }

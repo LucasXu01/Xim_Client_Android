@@ -8,16 +8,15 @@ package com.lucas.xim.conversation;
  * @Date: 2021/12/12  11:16 下午
  */
 
-import com.lucas.xim.v1.Message;
+import com.lucas.xim.message.IMMsg;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Conversation implements Serializable {
     private static final int CONVERSATION_TYPE_C2C = 1;
     private static final int CONVERSATION_TYPE_GROUP = 2;
 
+    private String conversationId;// 会话唯一标识  CONVERSATION_TYPE_C2C即为uid  CONVERSATION_TYPE_GROUP即为groupid
     // 会话 Key
     private ConversationKey conversationKey;
     // 会话类型
@@ -27,19 +26,17 @@ public class Conversation implements Serializable {
     private String c2cRemark;
     private String c2cNickname;
     private String c2cFaceUrl;
-    private long c2cReadTimestamp;
     private long c2cReceiptTimestamp;
     // group
     private String groupID;
     private String groupName;
     private String groupType;
     private String groupFaceUrl;
+
     // 群最新一条消息 Sequence
     private long groupLastSequence;
     // 群消息已读 sequence
     private long groupReadSequence;
-    // 群消息撤回 TimeStamp，单位：微妙
-    private long groupRevokeTimestamp;
     // 群消息接收选项
     private int groupMessageReceiveOption;
     // C2C 消息接收选项
@@ -50,9 +47,8 @@ public class Conversation implements Serializable {
     // 未读消息数
     private long unreadMessageCount;
     // 最后一条消息
-    private Message lastMessage;
-    // 群 at 信息
-    private List<ConversationAtInfo> conversationAtInfoList = new ArrayList<>();
+    private IMMsg lastMessage;
+
     // 置顶
     private boolean pinned = false;
 
@@ -67,8 +63,20 @@ public class Conversation implements Serializable {
         return conversationKey;
     }
 
+    public void setConversationType(int conversationType) {
+        this.conversationType = conversationType;
+    }
+
     public int getConversationType() {
         return conversationType;
+    }
+
+    public String getConversationId() {
+        return conversationId;
+    }
+
+    public void setConversationId(String conversationId) {
+        this.conversationId = conversationId;
     }
 
     public String getC2cUserID() {
@@ -85,10 +93,6 @@ public class Conversation implements Serializable {
 
     public String getC2cFaceUrl() {
         return c2cFaceUrl;
-    }
-
-    public long getC2cReadTimestamp() {
-        return c2cReadTimestamp;
     }
 
     public long getC2cReceiptTimestamp() {
@@ -119,10 +123,6 @@ public class Conversation implements Serializable {
         return groupReadSequence;
     }
 
-    public long getGroupRevokeTimestamp() {
-        return groupRevokeTimestamp;
-    }
-
     public int getGroupMessageReceiveOption() {
         return groupMessageReceiveOption;
     }
@@ -135,17 +135,10 @@ public class Conversation implements Serializable {
         return unreadMessageCount;
     }
 
-    public Message getLastMessage() {
+    public IMMsg getLastMessage() {
         return lastMessage;
     }
 
-    public List<ConversationAtInfo> getConversationAtInfoList() {
-        return conversationAtInfoList;
-    }
-
-    protected void addConversationAtInfoList(ConversationAtInfo conversationAtInfo) {
-        this.conversationAtInfoList.add(conversationAtInfo);
-    }
 
     public boolean isPinned() {
         return pinned;

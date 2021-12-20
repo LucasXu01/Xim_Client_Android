@@ -1,5 +1,7 @@
 package com.lucas.xim.ximcore.client.handler;
 
+import com.lucas.xim.BaseManager;
+import com.lucas.xim.common.IMLog;
 import com.lucas.xim.ximcore.protocal.response.LoginResponsePacket;
 import com.lucas.xim.ximcore.session.Session;
 import com.lucas.xim.ximcore.util.SessionUtil;
@@ -7,18 +9,22 @@ import com.lucas.xim.ximcore.util.SessionUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
+import static com.lucas.xim.BaseConstants.SEC_LOGIN;
+
 public class LoginResponseHandler extends SimpleChannelInboundHandler<LoginResponsePacket> {
+    private static final String TAG = LoginResponseHandler.class.getSimpleName();
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, LoginResponsePacket loginResponsePacket) {
         String userId = loginResponsePacket.getUserId();
-        String userName = loginResponsePacket.getUserName();
+        String mobile = loginResponsePacket.getMobile();
 
         if (loginResponsePacket.isSuccess()) {
-            System.out.println("[" + userName + "]登录成功，userId 为: " + loginResponsePacket.getUserId());
-            SessionUtil.bindSession(new Session(userId, userName), ctx.channel());
+            IMLog.d(TAG,"[" + mobile + "]登录成功，userId 为: " + loginResponsePacket.getUserId());
+            SessionUtil.bindSession(new Session(userId, mobile), ctx.channel());
+            BaseManager.getInstance().notifyLogin(SEC_LOGIN);
         } else {
-            System.out.println("[" + userName + "]登录失败，原因：" + loginResponsePacket.getReason());
+            IMLog.d(TAG,"[" + mobile + "]登录失败，原因：" + loginResponsePacket.getReason());
         }
     }
 

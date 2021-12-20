@@ -11,20 +11,21 @@ package com.lucas.xim;
 import android.content.Context;
 import android.util.Log;
 
+import com.lucas.xim.common.XIMCallback;
+import com.lucas.xim.conversation.ConversationManager;
+import com.lucas.xim.message.MessageCenter;
+import com.lucas.xim.v1.IMValueCallback;
 import com.lucas.xim.v1.UserInfo;
 import com.lucas.xim.v1.IMCallback;
 import com.lucas.xim.config.IMOptions;
-import com.lucas.xim.conversation.ConversationManager;
-import com.lucas.xim.group.GroupManager;
-import com.lucas.xim.message.MessageCenter;
-import com.lucas.xim.relationship.RelationshipManager;
-import com.lucas.xim.common.XIMCallback;
 import com.lucas.xim.v1.IMContext;
 import com.lucas.xim.common.IMLog;
-import com.lucas.xim.common.SystemUtil;
-import com.lucas.xim.ximcore.client.console.ConsoleCommandManager;
+import com.lucas.xim.ximcore.client.console.GetOnlineMembersConsoleCommand;
 import com.lucas.xim.ximcore.client.console.LoginConsoleCommand;
+import com.lucas.xim.ximcore.client.console.SendToGroupConsoleCommand;
+import com.lucas.xim.ximcore.client.console.SendToUserConsoleCommand;
 import com.lucas.xim.ximcore.client.handler.CreateGroupResponseHandler;
+import com.lucas.xim.ximcore.client.handler.GetOnlineMembersResponseHandler;
 import com.lucas.xim.ximcore.client.handler.GroupMessageResponseHandler;
 import com.lucas.xim.ximcore.client.handler.HeartBeatTimerHandler;
 import com.lucas.xim.ximcore.client.handler.JoinGroupResponseHandler;
@@ -37,14 +38,12 @@ import com.lucas.xim.ximcore.codec.PacketDecoder;
 import com.lucas.xim.ximcore.codec.PacketEncoder;
 import com.lucas.xim.ximcore.codec.Spliter;
 import com.lucas.xim.ximcore.handler.IMIdleStateHandler;
-import com.lucas.xim.ximcore.util.SessionUtil;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 import io.netty.bootstrap.Bootstrap;
@@ -58,34 +57,22 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 
 import static com.lucas.xim.BaseConstants.ERROR_INIT_MAX_TRY;
 
+
 public class BaseManager {
     private static final String TAG = BaseManager.class.getSimpleName();
 
-    public static final int TUI_COMPONENT_UNKNOWN = 0;
-    public static final int TUI_COMPONENT_CORE = 1;
-    public static final int TUI_COMPONENT_CONVERSATION = 2;
-    public static final int TUI_COMPONENT_CHAT = 3;
-    public static final int TUI_COMPONENT_CONTACT = 4;
-    public static final int TUI_COMPONENT_GROUP = 5;
-    public static final int TUI_COMPONENT_SEARCH = 6;
-
-    // 检查 TUI 组件的最大次数限制
-    private static final int TUI_COMPONENT_CHECK_COUNT_LIMIT = 5;
-    // 检查 TUI 组件的堆栈遍历深度
-    private static final int TUI_COMPONENT_STACK_LAYER_LIMIT = 10;
-
-    private boolean mInvokeFromTUIKit = false;
-    private boolean mInvokeFromTUICore = false;
-
+    public Channel channel; // 和客户端的连接channel，客户端只有一个，服务端需要池化
     List<Integer> mTUIComponentList = new ArrayList<>();
     private HashMap<Integer, Integer> mTUIComponentCheckCountMap = new HashMap<>();
-
     private WeakReference<SDKListener> sdkListenerWeakReference;
+    private WeakReference<IMCallback<List<String>>> getOnlineMembersCallback;
+    private WeakReference<IMCallback> loginCallback;
+    public boolean isInit = false;
+    public boolean isLogin = false;
 
-    private static boolean mLoadLibrarySuccess = false;
+    public String myUid = "";
 
-    private boolean isInit = false;
-    private boolean isTestEnvironment = false;
+
 
 
     private static class BaseManagerHolder {
@@ -94,6 +81,13 @@ public class BaseManager {
 
     public static BaseManager getInstance() {
         return BaseManager.BaseManagerHolder.baseManager;
+    }
+
+    public Channel getChannel() {
+        if (channel == null) {
+            IMLog.e(TAG, "channel为null！无与服务器的链接channel");
+        }
+        return channel;
     }
 
     public boolean initSDK(Context context, IMOptions options, SDKListener listener) {
@@ -108,12 +102,12 @@ public class BaseManager {
             return true;
         }
 
-
         IMContext.getInstance().init(context.getApplicationContext());
+
         MessageCenter.getInstance().init();
-        GroupManager.getInstance().init();
+//        GroupManager.getInstance().init();
         ConversationManager.getInstance().init();
-        RelationshipManager.getInstance().init();
+//        RelationshipManager.getInstance().init();
 
 //        sdkConfig.sdkInitPath = SystemUtil.getSDKInitPath();
 //        sdkConfig.sdkInstanceType = SystemUtil.getInstanceType();
@@ -140,12 +134,10 @@ public class BaseManager {
         return true;
     }
 
+
     public void unInitSDK() {
         nativeUninitSDK();
         isInit = false;
-        isTestEnvironment = false;
-        mInvokeFromTUIKit = false;
-        mInvokeFromTUICore = false;
         mTUIComponentList.clear();
         mTUIComponentCheckCountMap.clear();
     }
@@ -156,126 +148,25 @@ public class BaseManager {
         return System.currentTimeMillis();
     }
 
-
-    private String getUIPlatform() {
-        mInvokeFromTUIKit = isTUIKit();
-        boolean has_flutter = isFlutter();
-        boolean has_unity = isUnity();
-        if (has_flutter) {
-            if (mInvokeFromTUIKit) {
-                return "tuikit&flutter";
-            } else {
-                return "flutter";
-            }
-        } else if (has_unity) {
-            if (mInvokeFromTUIKit) {
-                return "tuikit&unity";
-            } else {
-                return "unity";
-            }
-        } else if (mInvokeFromTUIKit) {
-            return "tuikit";
-        }
-
-        return "";
-    }
-
-    private boolean isTUIKit() {
-        try {
-            Class classTUIKit = Class.forName("com.tencent.qcloud.tim.uikit.TUIKit");
-            if (classTUIKit != null) {
-                return true;
-            }
-        } catch (Exception e) {
-            // 不含 TUIKit
-        }
-
-        try {
-            Class classTUICore = Class.forName("com.tencent.qcloud.tuicore.TUICore");
-            if (classTUICore != null) {
-                return true;
-            }
-        } catch (ClassNotFoundException e) {
-            // 不含 TUIKit
-        }
-
-        // 如果包名被修改，再判断下调用栈的是否包含类的关键字
-        StackTraceElement[] stacks = Thread.currentThread().getStackTrace();
-        String callName = "";
-        for (int i = 0; i < stacks.length; i++) {
-            if (i > 15) {
-                return false;
-            }
-            callName = stacks[i].getClassName();
-            String lowerCaseCallName = callName.toLowerCase();
-            if (lowerCaseCallName.contains("tuikitimpl") || lowerCaseCallName.contains("tuicore")) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private boolean isTUICore() {
-        try {
-            Class classTUICore = Class.forName("com.tencent.qcloud.tuicore.TUICore");
-            if (classTUICore != null) {
-                return true;
-            }
-        } catch (ClassNotFoundException e) {
-            // 不含 TUIKit
-        }
-
-        // 如果包名被修改，再判断下调用栈的是否包含类的关键字
-        StackTraceElement[] stacks = Thread.currentThread().getStackTrace();
-        String callName = "";
-        for (int i = 0; i < stacks.length; i++) {
-            if (i > 15) {
-                return false;
-            }
-            callName = stacks[i].getClassName();
-            String lowerCaseCallName = callName.toLowerCase();
-            if (lowerCaseCallName.contains("tuicore")) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private boolean isFlutter() {
-        try {
-            Class c = Class.forName("com.qq.qcloud.tencent_im_sdk_plugin.tencent_im_sdk_plugin");
-            if (c != null) {
-                return true;
-            }
-        } catch (Exception e) {
-            // 不含 Flutter
-        }
-        return false;
-    }
-
-    private boolean isUnity() {
-        try {
-            Class c = Class.forName("com.qcloud.tencentimsdk.TencentImSDKPluginUnity");
-            if (c != null) {
-                return true;
-            }
-        } catch (Exception e) {
-            // 不含 Unity
-        }
-        return false;
+    public void getOnlineMembers(IMCallback<List<String>> callback) {
+        IMLog.d(TAG, "getOnlineMembers()");
+        getOnlineMembersCallback = new WeakReference<>(callback);
+        GetOnlineMembersConsoleCommand getOnlineMembersConsoleCommand = new GetOnlineMembersConsoleCommand();
+        getOnlineMembersConsoleCommand.exec(getChannel());
     }
 
 
-    public void login(final String userID, final String userSig, final IMCallback callback) {
+    public void login(final String uid, final String token, IMCallback callback) {
         if (!isInit) {
             if (callback != null) {
                 callback.fail(BaseConstants.ERR_SDK_NOT_INITIALIZED, "sdk not init");
             }
             return;
         }
-        nativeLogin(userID, userSig, callback);
+        myUid = uid;
+        loginCallback = new WeakReference<>(callback);
+        LoginConsoleCommand loginConsoleCommand = new LoginConsoleCommand();
+        loginConsoleCommand.exec(uid, token, getChannel());
     }
 
     public void logout(final IMCallback callback) {
@@ -288,18 +179,6 @@ public class BaseManager {
         nativeLogout(callback);
     }
 
-    public boolean setLibraryPath(String libraryPath) {
-        mLoadLibrarySuccess = SystemUtil.loadIMLibrary(libraryPath);
-        return mLoadLibrarySuccess;
-    }
-
-    public void setTestEnvironment(boolean testEnvironment) {
-        isTestEnvironment = testEnvironment;
-    }
-
-    public void setCustomServerInfo(CustomServerInfo customServerInfo) {
-        nativeSetCustomServerInfo(customServerInfo);
-    }
 
     public String getLoginUser() {
         if (!isInit) {
@@ -346,6 +225,9 @@ public class BaseManager {
     }
 
 
+    public void onRecMsg(String from_uid, String msg) {
+    }
+
 
     public void notifySelfInfoUpdated(UserInfo selfInfo) {
         if (sdkListenerWeakReference != null) {
@@ -356,19 +238,42 @@ public class BaseManager {
         }
     }
 
+    public void notifyGetMemberOnline(List<String> userList) {
+        if (getOnlineMembersCallback != null) {
+            IMCallback<List<String>> imCallback = getOnlineMembersCallback.get();
+            if (imCallback != null) {
+                imCallback.success(userList);
+            }
+        }
+    }
+
+    /**
+     * 登陆成功的回调
+     * @param secLogin
+     */
+    public void notifyLogin(int secLogin) {
+        isLogin = true;
+        if (loginCallback != null) {
+            IMCallback imCallback = loginCallback.get();
+            if (imCallback != null) {
+                imCallback.success(secLogin);
+            }
+        }
+    }
+
+
 
     private void connect(Bootstrap bootstrap, String host, int port, int retry, int maxRetry, SDKListener sdkListener) {
         bootstrap.connect(host, port).addListener(future -> {
             if (future.isSuccess()) {
-                IMLog.d(TAG,new Date() + ": 连接成功，启动控制台线程……");
-                if (sdkListener!=null){
+                IMLog.d(TAG, new Date() + ": 连接成功，启动控制台线程……");
+                if (sdkListener != null) {
                     sdkListener.onConnectSuccess();
                 }
-                Channel channel = ((ChannelFuture) future).channel();
-                startConsoleThread(channel);
+                channel = ((ChannelFuture) future).channel();
             } else if (retry == 0) {
-                IMLog.d(TAG,"重试次数已用完，放弃连接！");
-                if (sdkListener!=null){
+                IMLog.d(TAG, "重试次数已用完，放弃连接！");
+                if (sdkListener != null) {
                     sdkListener.onConnectFailed(ERROR_INIT_MAX_TRY, "xim connect 连接失败！重试次数已用完，放弃连接！");
                 }
             } else {
@@ -376,31 +281,13 @@ public class BaseManager {
                 int order = (maxRetry - retry) + 1;
                 // 本次重连的间隔
                 int delay = 1 << order;
-                IMLog.d(TAG,new Date() + ": 连接失败，第" + order + "次重连……");
+                IMLog.d(TAG, new Date() + ": 连接失败，第" + order + "次重连……");
                 bootstrap.config().group().schedule(() -> connect(bootstrap, host, port, retry - 1, maxRetry, sdkListener), delay, TimeUnit
                         .SECONDS);
             }
         });
     }
 
-    private void startConsoleThread(Channel channel) {
-        XimDispatcher.getInstance().setChannel(channel);
-        Channel channel1 = XimDispatcher.getInstance().getChannel();
-
-//        ConsoleCommandManager consoleCommandManager = new ConsoleCommandManager();
-//        LoginConsoleCommand loginConsoleCommand = new LoginConsoleCommand();
-//        Scanner scanner = new Scanner(System.in);
-//
-//        new Thread(() -> {
-//            while (!Thread.interrupted()) {
-//                if (!SessionUtil.hasLogin(channel)) {
-//                    loginConsoleCommand.exec(scanner, channel);
-//                } else {
-//                    consoleCommandManager.exec(scanner, channel);
-//                }
-//            }
-//        }).start();
-    }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -423,6 +310,8 @@ public class BaseManager {
                         ch.pipeline().addLast(new PacketDecoder());
                         // 登录响应处理器
                         ch.pipeline().addLast(new LoginResponseHandler());
+                        // my 获取群在线人数
+                        ch.pipeline().addLast(new GetOnlineMembersResponseHandler());
                         // 收消息处理器
                         ch.pipeline().addLast(new MessageResponseHandler());
                         // 创建群响应处理器
@@ -450,17 +339,14 @@ public class BaseManager {
     protected native void nativeUninitSDK();
 
 
-    protected  void nativeLogin(String identifier, String userSig, IMCallback callBack){
-        LoginConsoleCommand loginConsoleCommand = new LoginConsoleCommand();
-        Channel channel = XimDispatcher.getInstance().getChannel();
-        loginConsoleCommand.exec(identifier,  userSig, channel);
 
-        callBack.success(null);
-    };
+    public void send2Group(String uid, String msg) {
+        IMLog.d(TAG, "send2User()");
+        SendToGroupConsoleCommand sendToGroupConsoleCommand = new SendToGroupConsoleCommand();
+        sendToGroupConsoleCommand.exec(getChannel(), uid, msg);
+    }
 
     protected native void nativeLogout(IMCallback callBack);
-
-    protected native void nativeSetCustomServerInfo(CustomServerInfo customServerInfo);
 
     protected native String nativeGetLoginUser();
 
@@ -472,6 +358,5 @@ public class BaseManager {
 
     protected native long nativeGetTimeTick();
 
-    protected native void nativeInitLocalStorage(String identifier, XIMCallback callBack);
 
 }

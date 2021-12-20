@@ -17,11 +17,13 @@
         <!-- 语音/文字切换-->
         <ImageView
             android:id="@+id/btn_voice_or_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:layout_centerVertical="true"
             android:layout_marginLeft="12dp"
-            android:src="@drawable/btn_voice_or_text"/>
+            android:src="@drawable/btn_voice_or_text"
+            android:scaleType="centerCrop"
+            />
 
         <!--语音输入-->
         <!--<jiguang.chat.view.RecordVoiceButton-->
@@ -67,14 +69,14 @@
                 android:id="@+id/et_content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@null"/>
+                android:background="@null" />
 
         </RelativeLayout>
 
 
         <RelativeLayout
             android:id="@+id/rl_multi_and_send"
-            android:layout_width="98dp"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
@@ -84,20 +86,23 @@
             <!--表情-->
             <ImageView
                 android:id="@+id/btn_face"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="7dp"
-                android:src="@drawable/icon_face_nomal"/>
+                android:scaleType="centerCrop"
+                android:src="@drawable/icon_face_nomal" />
 
             <!--apps 功能-->
             <ImageView
                 android:id="@+id/btn_multimedia"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
                 android:layout_alignParentRight="true"
                 android:layout_marginRight="14dp"
-                android:src="@drawable/btn_multi_bg"/>
+                android:src="@drawable/btn_multi_bg"
+                android:scaleType="centerCrop"
+                />
 
             <!--发送-->
             <Button
@@ -109,8 +114,10 @@
                 android:background="@drawable/btn_send_bg_disable"
                 android:text="发送"
                 android:textColor="@color/btn_send_textcolor"
-                android:textSize="16sp"
-                android:visibility="gone"/>
+                android:textSize="8sp"
+                android:visibility="gone"
+                android:layout_centerVertical="true"
+                />
         </RelativeLayout>
     </RelativeLayout>
 

@@ -1,6 +1,7 @@
 package com.lucas.xim.ximcore.protocal;
 
 import com.lucas.xim.ximcore.protocal.request.CreateGroupRequestPacket;
+import com.lucas.xim.ximcore.protocal.request.GetOnlineMembersRequestPacket;
 import com.lucas.xim.ximcore.protocal.request.GroupMessageRequestPacket;
 import com.lucas.xim.ximcore.protocal.request.HeartBeatRequestPacket;
 import com.lucas.xim.ximcore.protocal.request.JoinGroupRequestPacket;
@@ -10,6 +11,7 @@ import com.lucas.xim.ximcore.protocal.request.LogoutRequestPacket;
 import com.lucas.xim.ximcore.protocal.request.MessageRequestPacket;
 import com.lucas.xim.ximcore.protocal.request.QuitGroupRequestPacket;
 import com.lucas.xim.ximcore.protocal.response.CreateGroupResponsePacket;
+import com.lucas.xim.ximcore.protocal.response.GetOnlineMembersResponsePacket;
 import com.lucas.xim.ximcore.protocal.response.GroupMessageResponsePacket;
 import com.lucas.xim.ximcore.protocal.response.HeartBeatResponsePacket;
 import com.lucas.xim.ximcore.protocal.response.JoinGroupResponsePacket;
@@ -58,6 +60,8 @@ public class PacketCodec {
         packetTypeMap.put(GROUP_MESSAGE_RESPONSE, GroupMessageResponsePacket.class);
         packetTypeMap.put(HEARTBEAT_REQUEST, HeartBeatRequestPacket.class);
         packetTypeMap.put(HEARTBEAT_RESPONSE, HeartBeatResponsePacket.class);
+        packetTypeMap.put(GET_ONLINE_MEMBERS_REQUEST, GetOnlineMembersRequestPacket.class);
+        packetTypeMap.put(GET_ONLINE_MEMBERS_RESPONSE, GetOnlineMembersResponsePacket.class);
 
         serializerMap = new HashMap<>();
         Serializer serializer = new JSONSerializer();

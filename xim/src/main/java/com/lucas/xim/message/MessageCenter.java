@@ -9,24 +9,26 @@ package com.lucas.xim.message;
  */
 
 import com.lucas.xim.BaseConstants;
+import com.lucas.xim.conversation.Conversation;
 import com.lucas.xim.v1.IMCallback;
 import com.lucas.xim.common.IMLog;
 import com.lucas.xim.BaseManager;
 import com.lucas.xim.v1.IMContext;
-import com.lucas.xim.v1.Message;
-import com.lucas.xim.v1.MessageKey;
 import com.lucas.xim.v1.MessageListener;
-import com.lucas.xim.v1.MessageReceipt;
+import com.lucas.xim.ximcore.client.console.SendToUserConsoleCommand;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class MessageCenter {
     private static final String TAG = "MessageCenter";
 
     private Object mLockObject = new Object();
-    private MessageListener mMessageListener;
-    private CopyOnWriteArrayList<MessageListener> mMessageProxyListenerList;
+    private CopyOnWriteArrayList<MessageListener> mMessageListenerList;
+    private Map<Conversation, MessageListener> conversationMessageListenerMap;
 
     private static class MessageCenterHolder {
         private static final MessageCenter messageCenter = new MessageCenter();
@@ -37,71 +39,104 @@ public class MessageCenter {
     }
 
     protected MessageCenter() {
-        mMessageProxyListenerList = new CopyOnWriteArrayList<>();
+        mMessageListenerList = new CopyOnWriteArrayList<>();
     }
 
     public void init() {
-        initMessageListener();
+        conversationMessageListenerMap = new HashMap<>();
     }
 
-    private void initMessageListener() {
-        mMessageListener = new MessageListener() {
-            @Override
-            public void onReceiveNewMessage(final List<Message> messageList) {
-                IMContext.getInstance().runOnMainThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        synchronized (mLockObject) {
-                            for (MessageListener messageListener : mMessageProxyListenerList) {
-                                messageListener.onReceiveNewMessage(messageList);
-                            }
-                        }
-                    }
-                });
-            }
 
-
-        };
-    }
 
     public void addMessageListener(MessageListener messageListener) {
+        if (messageListener == null) {
+            return;
+        }
         synchronized (mLockObject) {
-            mMessageProxyListenerList.add(messageListener);
+            if (mMessageListenerList.contains(messageListener)) {
+                return;
+            }
+            mMessageListenerList.add(messageListener);
         }
     }
 
-    public String sendMessage(Message message, MessageUploadProgressCallback progressCallback, IMCallback callback) {
-        if (!BaseManager.getInstance().isInited()) {
-            if (callback != null) {
-                callback.fail(BaseConstants.ERR_SDK_NOT_INITIALIZED, "sdk not init");
-            }
-            return null;
+    public void removeMessageListener(MessageListener messageListener) {
+        if (messageListener == null) {
+            return;
         }
+        synchronized (mLockObject) {
+            mMessageListenerList.remove(messageListener);
+        }
+    }
 
-        return nativeSendMessage(message, progressCallback, callback);
+    public void addConversationListener(Conversation conversation, MessageListener listener) {
+        if (listener == null || conversation == null) {
+            IMLog.e(TAG, "listener == null || conversation == null");
+            return;
+        }
+        synchronized (mLockObject) {
+            conversationMessageListenerMap.put(conversation, listener);
+        }
+    }
+
+    public void removeConversationListener(Conversation conversation) {
+        if (conversation == null) {
+            IMLog.e(TAG, "listener == null || conversation == null");
+            return;
+        }
+        synchronized (mLockObject) {
+            conversationMessageListenerMap.remove(conversation);
+        }
+    }
+
+    public void sendMessage(IMMsg message) {
+        if (!BaseManager.getInstance().isInited()) {
+            IMLog.d(TAG, BaseConstants.ERR_SDK_NOT_INITIALIZED + ": sdk not init");
+            return;
+        }
+        if (!BaseManager.getInstance().isLogin) {
+            IMLog.d(TAG, BaseConstants.ERROR_NOT_LOGIN + ": 用户未登录");
+            return;
+        }
+        IMLog.d(TAG, "sendMessage()");
+        SendToUserConsoleCommand sendToUserConsoleCommand = new SendToUserConsoleCommand();
+        sendToUserConsoleCommand.exec(BaseManager.getInstance().getChannel(), message);
     }
 
 
-    public void setC2CMessageRead(String userID, long readTime, IMCallback callback) {
+    public void onReceiveMsg(IMMsg imMsg) {
         if (!BaseManager.getInstance().isInited()) {
-            if (callback != null) {
-                callback.fail(BaseConstants.ERR_SDK_NOT_INITIALIZED, "sdk not init");
-            }
+            IMLog.d(TAG, BaseConstants.ERR_SDK_NOT_INITIALIZED + ": sdk not init");
+            return;
+        }
+        if (imMsg == null) {
+            IMLog.d(TAG, BaseConstants.ERROR_MSG_NULL + ": messageList为null");
+            return;
+        }
+        if (mMessageListenerList == null) {
+            IMLog.d(TAG, ": mMessageListenerList为null");
             return;
         }
 
-        nativeSetC2CMessageRead(userID, readTime, callback);
-    }
-
-    public void setGroupMessageRead(String groupID, long readSequence, IMCallback callback) {
-        if (!BaseManager.getInstance().isInited()) {
-            if (callback != null) {
-                callback.fail(BaseConstants.ERR_SDK_NOT_INITIALIZED, "sdk not init");
+        //会话的listener回调
+        for (Conversation conversation : conversationMessageListenerMap.keySet()){
+            if (conversation.getConversationType() == imMsg.getMsgType() && conversation.getConversationId().equals(imMsg.getReceiver())){
+                conversationMessageListenerMap.get(conversation).onReceiveNewMessage(imMsg);
             }
-            return;
         }
 
-        nativeSetGroupMessageRead(groupID, readSequence, callback);
+        //全局的listener回调
+        IMContext.getInstance().runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                synchronized (mLockObject) {
+                    for (MessageListener messageListener : mMessageListenerList) {
+                        messageListener.onReceiveNewMessage(imMsg);
+                    }
+                }
+            }
+        });
+
     }
 
     public void getC2CHistoryMessageList(String userID,
@@ -131,15 +166,8 @@ public class MessageCenter {
     }
 
 
-
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    protected native String nativeSendMessage(Message message, MessageUploadProgressCallback messageUploadProgressCallback, IMCallback callback);
-
-
-    protected native void nativeSetC2CMessageRead(String userID, long readTime, IMCallback callback);
-
-    protected native void nativeSetGroupMessageRead(String groupID, long readSequence, IMCallback callback);
 
     protected native void nativeGetC2CHistoryMessageList(String userID,
                                                          MessageListGetOption messageListGetOption,

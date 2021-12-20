@@ -8,16 +8,16 @@ import lombok.NoArgsConstructor;
 public class Session {
     // 用户唯一性标识
     private String userId;
-    private String userName;
+    private String mobile;
 
-    public Session(String userId, String userName) {
+    public Session(String userId, String mobile) {
         this.userId = userId;
-        this.userName = userName;
+        this.mobile = mobile;
     }
 
     @Override
     public String toString() {
-        return userId + ":" + userName;
+        return userId + ":" + mobile;
     }
 
 }

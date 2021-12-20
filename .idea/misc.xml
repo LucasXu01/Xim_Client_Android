@@ -15,7 +15,7 @@
         <entry key="app/src/main/res/layout/item_chat_receive_text.xml" value="0.1" />
         <entry key="app/src/main/res/layout/item_chat_send_text.xml" value="0.1" />
         <entry key="app/src/main/res/layout/item_onlinelist.xml" value="0.18115942028985507" />
-        <entry key="app/src/main/res/layout/view_keyboard_xhs.xml" value="0.18115942028985507" />
+        <entry key="app/src/main/res/layout/view_keyboard_xhs.xml" value="0.1" />
       </map>
     </option>
   </component>

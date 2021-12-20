@@ -351,6 +351,11 @@ public class BaseConstants {
 
 
     public static final int ERROR_INIT_MAX_TRY= 40001;
+    public static final int SEC_LOGIN= 20001;                  //登陆成功
+    public static final int FAIL_LOGIN_WRONG_USER= 40002;      // 该用户不存在
+    public static final int FAIL_LOGIN_WRONG_SIG= 40003;       // 密码或sign不对
+    public static final int ERROR_NOT_LOGIN= 40004;            // 用户没登录
+    public static final int ERROR_MSG_NULL= 40005;            // Msg为null
 
     public BaseConstants() {
     }

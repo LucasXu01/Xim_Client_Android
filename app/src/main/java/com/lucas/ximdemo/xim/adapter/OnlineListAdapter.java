@@ -9,13 +9,18 @@ package com.lucas.ximdemo.xim.adapter;
  */
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.blankj.utilcode.util.ActivityUtils;
+import com.lucas.xim.conversation.Conversation;
+import com.lucas.xim.message.IMMsg;
 import com.lucas.ximdemo.R;
+import com.lucas.ximdemo.xim.ui.ChatActivity;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -62,6 +67,13 @@ public class OnlineListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 @Override
                 public void onClick(View v) {
                     Toast.makeText(mContext, mTV.getText(), Toast.LENGTH_SHORT).show();
+                    Intent intent  = new Intent(mContext, ChatActivity.class);
+
+                    Conversation conversation = new Conversation();
+                    conversation.setConversationType(IMMsg.MESSAGE_TYPE_C2C);
+                    conversation.setConversationId(mDatas.get(getPosition()));
+                    intent.putExtra("conversation", conversation);
+                    ActivityUtils.startActivity(intent);
                 }
             });
         }

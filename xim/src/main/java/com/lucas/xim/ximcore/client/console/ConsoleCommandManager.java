@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 public class ConsoleCommandManager implements ConsoleCommand {
-    private Map<String, ConsoleCommand> consoleCommandMap;
+    private Map<String, Object> consoleCommandMap;
 
     public ConsoleCommandManager() {
         consoleCommandMap = new HashMap<>();
@@ -32,7 +32,7 @@ public class ConsoleCommandManager implements ConsoleCommand {
             return;
         }
 
-        ConsoleCommand consoleCommand = consoleCommandMap.get(command);
+        ConsoleCommand consoleCommand = (ConsoleCommand) consoleCommandMap.get(command);
 
         if (consoleCommand != null) {
             consoleCommand.exec(scanner, channel);

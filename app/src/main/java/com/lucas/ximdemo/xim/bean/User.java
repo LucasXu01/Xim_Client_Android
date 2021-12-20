@@ -1,5 +1,8 @@
 package com.lucas.ximdemo.xim.bean;
 
+
+import java.io.Serializable;
+
 /**
  * @Description:
  * @Auther: LucasXu
@@ -7,17 +10,30 @@ package com.lucas.ximdemo.xim.bean;
  * @github: https://github.com/LucasXu01
  * @Date: 2021/12/14  1:55 下午
  */
-public class User {
-    public String nickname;
-    public String password;
-    public String mobile;
-    public String create_time;
+public class User implements Serializable {
 
-    public User(String nickname, String password, String mobile, String create_time) {
+    private String _id;
+    private String nickname;
+    private String password;
+    private String mobile;
+    private Long create_time;
+    private String token;
+
+    public User(String _id, String nickname, String password, String mobile, Long create_time, String token) {
+        this._id = _id;
         this.nickname = nickname;
         this.password = password;
         this.mobile = mobile;
         this.create_time = create_time;
+        this.token = token;
+    }
+
+    public String get_id() {
+        return _id;
+    }
+
+    public void set_id(String _id) {
+        this._id = _id;
     }
 
     public String getNickname() {
@@ -44,11 +60,19 @@ public class User {
         this.mobile = mobile;
     }
 
-    public String getCreate_time() {
+    public Long getCreate_time() {
         return create_time;
     }
 
-    public void setCreate_time(String create_time) {
+    public void setCreate_time(Long create_time) {
         this.create_time = create_time;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 }

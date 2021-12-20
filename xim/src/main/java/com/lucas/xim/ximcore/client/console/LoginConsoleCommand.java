@@ -9,11 +9,11 @@ import java.util.Scanner;
 
 public class LoginConsoleCommand {
 
-    public void exec(String mobile,String pwd, Channel channel) {
+    public void exec(String var1,String var2, Channel channel) {
         LoginRequestPacket loginRequestPacket = new LoginRequestPacket();
 
-        loginRequestPacket.setUsername(mobile);
-        loginRequestPacket.setPassword(pwd);
+        loginRequestPacket.setUserId(var1);
+        loginRequestPacket.setToken(var2);
 
         // 发送登录数据包
         channel.writeAndFlush(loginRequestPacket);

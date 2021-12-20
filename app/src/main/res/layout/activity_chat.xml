@@ -14,10 +14,13 @@
 
         <ImageButton
             android:id="@+id/iv_return"
-            android:layout_width="@dimen/title_bar_height"
-            android:layout_height="match_parent"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:background="@drawable/jmui_back_btn_bg"
-            android:src="@drawable/back" />
+            android:src="@drawable/back"
+            android:layout_centerVertical="true"
+            android:scaleType="centerCrop"
+            />
 
 
         <LinearLayout
@@ -49,11 +52,14 @@
 
         <ImageButton
             android:id="@+id/jmui_right_btn"
-            android:layout_width="@dimen/title_bar_height"
-            android:layout_height="match_parent"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_alignParentRight="true"
             android:background="@drawable/jmui_back_btn_bg"
-            android:src="@drawable/jmui_chat_detail" />
+            android:src="@drawable/jmui_chat_detail"
+            android:layout_centerVertical="true"
+            android:scaleType="centerCrop"
+            />
     </RelativeLayout>
 
     <ListView

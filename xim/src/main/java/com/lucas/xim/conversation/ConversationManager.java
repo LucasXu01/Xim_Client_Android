@@ -178,15 +178,6 @@ public class ConversationManager {
         nativeGetTotalUnreadMessageCount(callback);
     }
 
-    public void setCosSaveRegionForConversation(ConversationKey conversationKey, String cosSaveRegion, IMCallback callback) {
-        if (!BaseManager.getInstance().isInited()) {
-            if (callback != null) {
-                callback.fail(BaseConstants.ERR_SDK_NOT_INITIALIZED, "sdk not init");
-            }
-            return;
-        }
-        nativeSetCosSaveRegionForConversation(conversationKey, cosSaveRegion, callback);
-    }
 
     public void clearUnreadMessage(boolean clearC2CUnreadMessage, boolean clearGroupUnreadMessage, IMCallback callback) {
         if (!BaseManager.getInstance().isInited()) {
@@ -198,7 +189,6 @@ public class ConversationManager {
         nativeClearUnreadMessage(clearC2CUnreadMessage, clearGroupUnreadMessage, callback);
     }
 
-    protected native void nativeSetConversationListener(ConversationListener listener);
 
     protected native void nativeGetConversationList(long nextSeq, int count, IMCallback callback);
 
@@ -211,8 +201,6 @@ public class ConversationManager {
     protected native void nativePinConversation(ConversationKey conversationKey, boolean isPinned, IMCallback callback);
 
     protected native void nativeGetTotalUnreadMessageCount(IMCallback callback);
-
-    protected native void nativeSetCosSaveRegionForConversation(ConversationKey conversationKey, String cosSaveRegion, IMCallback callback);
 
     protected native void nativeClearUnreadMessage(boolean clearC2CUnreadMessage, boolean clearGroupUnreadMessage, IMCallback callback);
 }
