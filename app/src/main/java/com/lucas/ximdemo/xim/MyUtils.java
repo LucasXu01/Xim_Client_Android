@@ -13,7 +13,7 @@ public class MyUtils {
     private User user;
     private static final MyUtils ourInstance = new MyUtils();
 
-    static MyUtils getInstance() {
+    public static MyUtils getInstance() {
         return ourInstance;
     }
 
